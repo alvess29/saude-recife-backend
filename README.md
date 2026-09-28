@@ -43,10 +43,14 @@ navegador) tambem ficam neste repositorio.
 | Login e Autenticacao | Firebase Authentication (e-mail/senha), validado pelo middleware |
 | Perfis e Controle de Acesso | `tipoUsuario` (paciente/profissional/administrador) + middleware `permitir()` |
 | Criacao de conta para Profissionais/Equipe | `POST /api/auth/registrar-equipe` |
+| Cadastro de Pacientes pelo Administrador | `POST /api/auth/registrar-paciente` (mesma rota usada no autocadastro) |
+| Edicao de Dados de Pacientes pelo Administrador | `PUT /api/auth/pacientes/:id` |
 | Consulta do Perfil Logado | `GET /api/auth/perfil` |
 | Consulta de Clinicas/Profissionais/Especialidades | `GET /api/clinicas`, `/api/profissionais`, `/api/especialidades` |
-| Cadastro de Disponibilidade do Profissional | `POST /api/disponibilidades` |
-| Consulta de Horarios Disponiveis | `GET /api/disponibilidades` |
+| Cadastro de Disponibilidade do Profissional | `POST /api/disponibilidades` (um horário) e `POST /api/disponibilidades/lote` (vários dias e horários de uma vez) |
+| Ajuste do Horário de um Dia | `PATCH /api/disponibilidades/dia` (corpo: `data`, `horaInicio` e/ou `horaFim`; remove os horários livres fora do novo intervalo). Se houver horários já reservados fora dele, responde `409` com a lista de consultas afetadas; reenviando com `cancelarAgendamentos: true`, cancela essas consultas e remove os horários. O profissional só altera a própria agenda |
+| Consulta de Horários Disponíveis | `GET /api/disponibilidades` (só mostra dias de hoje em diante) |
+| Pré-triagem de Sintomas por IA | `POST /api/triagem` |
 | Agendamento de Consulta | `POST /api/agendamentos` |
 | Cancelamento de Agendamento | `PATCH /api/agendamentos/:id/cancelar` |
 | Integracao Client-Server (API REST + JSON) | toda a pasta `src/routes` |
@@ -68,10 +72,29 @@ README do [repositorio do frontend](https://github.com/alvess29/saude-recife-fro
 As chaves web do Firebase (usadas pelo front-end para login) ficam no
 repositorio do frontend, nao neste.
 
-## 4. Rodar o backend
+## 4. Configurar a pré-triagem por IA (opcional)
 
-O arquivo `.env` e **opcional**: se voce colocou `serviceAccountKey.json`
-na raiz do projeto (passo 4 acima), o backend encontra ele sozinho.
+A aba "Agendar consulta" do paciente tem um assistente que faz algumas
+perguntas sobre os sintomas e recomenda a especialidade adequada, usando a
+API gratuita do Google Gemini. Sem essa chave configurada, o resto do
+sistema funciona normalmente, só a pré-triagem fica indisponível.
+
+1. Crie uma chave gratuita em https://aistudio.google.com/apikey (só
+   precisa de uma conta Google, sem cartão de crédito).
+2. No arquivo `.env` da raiz do backend, adicione:
+   ```
+   GEMINI_API_KEY=sua-chave-aqui
+   ```
+
+Essa funcionalidade usa o `fetch` nativo do Node, por isso é necessário
+**Node 18 ou superior** rodando o backend.
+
+## 5. Rodar o backend
+
+O arquivo `.env` e **opcional** para o Firebase: se voce colocou
+`serviceAccountKey.json` na raiz do projeto (passo 4 da seção anterior), o
+backend encontra ele sozinho. Ele passa a ser necessário apenas se você for
+usar a pré-triagem por IA (seção 4 acima).
 
 ```bash
 npm install
@@ -85,9 +108,9 @@ nome exato, extensao `.json`).
 
 A API sobe em `http://localhost:3000`. Teste com `GET http://localhost:3000/api/saude`.
 
-## 5. Como testar
+## 6. Como testar
 
-### 5.1 Teste automatizado (smoke test)
+### 6.1 Teste automatizado (smoke test)
 
 Com o Firebase real configurado, existe um script que executa o fluxo
 completo (especialidade, clinica, profissional, horario, paciente, agendamento
@@ -107,7 +130,7 @@ node scripts/smokeTest.js
 
 O script imprime o resultado de cada etapa no terminal.
 
-### 5.2 Testar a API sem o front-end (curl)
+### 6.2 Testar a API sem o front-end (curl)
 
 ```bash
 # Rota publica
@@ -128,7 +151,7 @@ curl -X POST "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassw
   -d '{"email":"ana@teste.com","password":"123456","returnSecureToken":true}'
 ```
 
-### 5.3 Teste manual completo (backend + frontend)
+### 6.3 Teste manual completo (backend + frontend)
 
 O checklist passo a passo que cobre os dois repositorios juntos esta no
 README do [frontend](https://github.com/alvess29/saude-recife-frontend).

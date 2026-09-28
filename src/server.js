@@ -8,6 +8,7 @@ const especialidadesRoutes = require('./routes/especialidades.routes');
 const profissionaisRoutes = require('./routes/profissionais.routes');
 const disponibilidadesRoutes = require('./routes/disponibilidades.routes');
 const agendamentosRoutes = require('./routes/agendamentos.routes');
+const triagemRoutes = require('./routes/triagem.routes');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/especialidades', especialidadesRoutes);
 app.use('/api/profissionais', profissionaisRoutes);
 app.use('/api/disponibilidades', disponibilidadesRoutes);
 app.use('/api/agendamentos', agendamentosRoutes);
+app.use('/api/triagem', triagemRoutes);
 
 app.use((req, res) => res.status(404).json({ erro: 'Rota nao encontrada.' }));
 

@@ -9,5 +9,6 @@ router.post('/resolver-login', ctrl.resolverLogin);
 router.get('/perfil', autenticar, ctrl.perfilAtual);
 router.put('/perfil', autenticar, permitir('paciente'), ctrl.atualizarPerfilPaciente);
 router.get('/pacientes', autenticar, permitir('administrador'), ctrl.listarPacientes);
+router.put('/pacientes/:id', autenticar, permitir('administrador'), ctrl.atualizarPacienteAdmin);
 
 module.exports = router;

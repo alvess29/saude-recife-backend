@@ -198,11 +198,41 @@ async function atualizarPerfilPaciente(req, res) {
   }
 }
 
+async function atualizarPacienteAdmin(req, res) {
+  try {
+    const { id } = req.params;
+    const { nome, telefone, dataNascimento, sexo, observacoes } = req.body;
+
+    const usuarioDoc = await db.collection(USUARIOS).doc(id).get();
+    if (!usuarioDoc.exists || usuarioDoc.data().tipoUsuario !== 'paciente') {
+      return res.status(404).json({ erro: 'Paciente nao encontrado.' });
+    }
+
+    if (nome || telefone) {
+      await db.collection(USUARIOS).doc(id).update({
+        ...(nome && { nome }),
+        ...(telefone && { telefone }),
+      });
+    }
+    await db.collection(PACIENTES).doc(id).update({
+      ...(dataNascimento && { dataNascimento }),
+      ...(sexo && { sexo }),
+      ...(observacoes !== undefined && { observacoes }),
+    });
+
+    res.json({ mensagem: 'Paciente atualizado com sucesso.' });
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ erro: 'Erro ao atualizar paciente.' });
+  }
+}
+
 module.exports = {
   registrarPaciente,
   registrarContaEquipe,
   perfilAtual,
   atualizarPerfilPaciente,
+  atualizarPacienteAdmin,
   resolverLogin,
   listarPacientes,
 };
