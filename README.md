@@ -48,8 +48,7 @@ navegador) tambem ficam neste repositorio.
 | Consulta do Perfil Logado | `GET /api/auth/perfil` |
 | Consulta de Clinicas/Profissionais/Especialidades | `GET /api/clinicas`, `/api/profissionais`, `/api/especialidades` |
 | Cadastro de Disponibilidade do Profissional | `POST /api/disponibilidades` (um horário) e `POST /api/disponibilidades/lote` (vários dias e horários de uma vez) |
-| Ajuste do Horário de um Dia | `PATCH /api/disponibilidades/dia` (corpo: `data`, `horaInicio` e/ou `horaFim`; remove os horários livres fora do novo intervalo). Se houver horários já reservados fora dele, responde `409` com a lista de consultas afetadas; reenviando com `cancelarAgendamentos: true`, cancela essas consultas e remove os horários. O profissional só altera a própria agenda |
-| Consulta de Horários Disponíveis | `GET /api/disponibilidades` (só mostra dias de hoje em diante) |
+| Consulta de Horários Disponíveis | `GET /api/disponibilidades` (só mostra de hoje em diante; horários livres cujo início já passou, no fuso de Recife, ficam de fora, e `POST /api/agendamentos` recusa esses horários com `409`) |
 | Pré-triagem de Sintomas por IA | `POST /api/triagem` |
 | Agendamento de Consulta | `POST /api/agendamentos` |
 | Cancelamento de Agendamento | `PATCH /api/agendamentos/:id/cancelar` |
