@@ -1,5 +1,6 @@
 const { db } = require('../config/firebase');
-const { DISPONIBILIDADES, PROFISSIONAIS, AGENDAMENTOS } = require('../config/collections');
+const { DISPONIBILIDADES, PROFISSIONAIS } = require('../config/collections');
+const { agoraNoFuso, horarioJaPassou } = require('../utils/fusoHorario');
 
 function paraMinutos(horario) {
   const [hora, minuto] = horario.split(':').map(Number);
@@ -10,10 +11,6 @@ function paraHorario(minutos) {
   const hora = String(Math.floor(minutos / 60)).padStart(2, '0');
   const minuto = String(minutos % 60).padStart(2, '0');
   return `${hora}:${minuto}`;
-}
-
-function hojeIso() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 async function cadastrar(req, res) {
@@ -60,7 +57,8 @@ async function listar(req, res) {
     const snap = await query.get();
     let itens = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-    itens = itens.filter((item) => item.data >= hojeIso());
+    const hoje = agoraNoFuso().data;
+    itens = itens.filter((item) => item.data >= hoje && !(item.status === 'disponivel' && horarioJaPassou(item)));
 
     if (especialidadeId) {
       const profissionaisSnap = await db
@@ -144,92 +142,4 @@ async function cadastrarLote(req, res) {
   }
 }
 
-const REGEX_HORARIO = /^([01]\d|2[0-3]):[0-5]\d$/;
-const REGEX_DATA = /^\d{4}-\d{2}-\d{2}$/;
-
-async function ajustarDia(req, res) {
-  const { data, horaInicio, horaFim, cancelarAgendamentos } = req.body;
-  const ehProfissional = req.usuario.tipoUsuario === 'profissional';
-  const profissionalId = ehProfissional ? req.usuario.profissionalId : req.body.profissionalId;
-
-  if (!profissionalId) {
-    return res.status(400).json({ erro: 'Profissional não identificado para este ajuste.' });
-  }
-  if (!data || !REGEX_DATA.test(data)) {
-    return res.status(400).json({ erro: 'Informe a data no formato AAAA-MM-DD.' });
-  }
-  if (data < hojeIso()) {
-    return res.status(400).json({ erro: 'Não é possível ajustar um dia que já passou.' });
-  }
-  if (!horaInicio && !horaFim) {
-    return res.status(400).json({ erro: 'Informe o novo horário de início, o de fim, ou os dois.' });
-  }
-  if ((horaInicio && !REGEX_HORARIO.test(horaInicio)) || (horaFim && !REGEX_HORARIO.test(horaFim))) {
-    return res.status(400).json({ erro: 'Horários devem estar no formato HH:MM.' });
-  }
-  if (horaInicio && horaFim && paraMinutos(horaFim) <= paraMinutos(horaInicio)) {
-    return res.status(400).json({ erro: 'O horário de fim deve ser depois do horário de início.' });
-  }
-
-  try {
-    const snap = await db
-      .collection(DISPONIBILIDADES)
-      .where('profissionalId', '==', profissionalId)
-      .where('data', '==', data)
-      .get();
-
-    const foraDoExpediente = snap.docs.filter((doc) => {
-      const item = doc.data();
-      const antes = horaInicio && paraMinutos(item.horaInicio) < paraMinutos(horaInicio);
-      const depois = horaFim && paraMinutos(item.horaFim) > paraMinutos(horaFim);
-      return antes || depois;
-    });
-
-    const livres = foraDoExpediente.filter((doc) => doc.data().status !== 'reservado');
-    const reservados = foraDoExpediente.filter((doc) => doc.data().status === 'reservado');
-
-    let agendamentosAfetados = [];
-    if (reservados.length) {
-      const idsReservados = new Set(reservados.map((doc) => doc.id));
-      const agSnap = await db.collection(AGENDAMENTOS).where('profissionalId', '==', profissionalId).get();
-      agendamentosAfetados = agSnap.docs.filter((doc) => {
-        const ag = doc.data();
-        return ag.status === 'confirmado' && idsReservados.has(ag.disponibilidadeId);
-      });
-
-      if (!cancelarAgendamentos) {
-        return res.status(409).json({
-          erro: `${agendamentosAfetados.length} consulta(s) já marcada(s) ficam fora do novo horário. Confirme para cancelá-las.`,
-          agendamentosAfetados: agendamentosAfetados.map((doc) => ({
-            id: doc.id,
-            pacienteNome: doc.data().pacienteNome,
-            dataHora: doc.data().dataHora,
-          })),
-        });
-      }
-    }
-
-    const lote = db.batch();
-    livres.forEach((doc) => lote.delete(doc.ref));
-    reservados.forEach((doc) => lote.delete(doc.ref));
-    agendamentosAfetados.forEach((doc) => {
-      lote.update(doc.ref, {
-        status: 'cancelado',
-        canceladoEm: new Date().toISOString(),
-        motivoCancelamento: 'Profissional alterou o horário de atendimento do dia.',
-      });
-    });
-    await lote.commit();
-
-    res.json({
-      mensagem: 'Horário do dia ajustado.',
-      horariosRemovidos: livres.length + reservados.length,
-      agendamentosCancelados: agendamentosAfetados.length,
-    });
-  } catch (erro) {
-    console.error(erro);
-    res.status(500).json({ erro: 'Erro ao ajustar o horário do dia.' });
-  }
-}
-
-module.exports = { cadastrar, listar, remover, cadastrarLote, ajustarDia };
+module.exports = { cadastrar, listar, remover, cadastrarLote };

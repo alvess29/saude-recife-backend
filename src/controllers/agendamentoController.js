@@ -1,5 +1,6 @@
 const { db } = require('../config/firebase');
 const { AGENDAMENTOS, DISPONIBILIDADES } = require('../config/collections');
+const { horarioJaPassou } = require('../utils/fusoHorario');
 
 async function criar(req, res) {
   const { disponibilidadeId, especialidadeId, observacao } = req.body;
@@ -17,6 +18,7 @@ async function criar(req, res) {
       if (!dispoDoc.exists) throw { status: 404, mensagem: 'Horario nao encontrado.' };
       const dispo = dispoDoc.data();
       if (dispo.status !== 'disponivel') throw { status: 409, mensagem: 'Este horario ja nao esta mais disponivel.' };
+      if (horarioJaPassou(dispo)) throw { status: 409, mensagem: 'Este horario ja passou.' };
 
       const agendamento = {
         pacienteId,
