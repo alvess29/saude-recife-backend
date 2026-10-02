@@ -15,9 +15,21 @@ function agoraNoFuso() {
   return { data: `${valor.year}-${valor.month}-${valor.day}`, hora: `${valor.hour}:${valor.minute}` };
 }
 
+function agoraIsoNoFuso() {
+  const agora = agoraNoFuso();
+  return `${agora.data}T${agora.hora}`;
+}
+
+function subtrairMinutos(dataHora, minutos) {
+  const [data, hora] = dataHora.split('T');
+  const [ano, mes, dia] = data.split('-').map(Number);
+  const [horas, min] = hora.split(':').map(Number);
+  return new Date(Date.UTC(ano, mes - 1, dia, horas, min) - minutos * 60000).toISOString().slice(0, 16);
+}
+
 function horarioJaPassou({ data, horaInicio }) {
   const agora = agoraNoFuso();
   return data < agora.data || (data === agora.data && horaInicio <= agora.hora);
 }
 
-module.exports = { agoraNoFuso, horarioJaPassou };
+module.exports = { agoraNoFuso, agoraIsoNoFuso, subtrairMinutos, horarioJaPassou };

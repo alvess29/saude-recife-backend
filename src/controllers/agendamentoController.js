@@ -1,6 +1,23 @@
 const { db } = require('../config/firebase');
 const { AGENDAMENTOS, DISPONIBILIDADES } = require('../config/collections');
-const { horarioJaPassou } = require('../utils/fusoHorario');
+const { horarioJaPassou, agoraIsoNoFuso, subtrairMinutos } = require('../utils/fusoHorario');
+
+const ANTECEDENCIA_CANCELAMENTO_MINUTOS = 24 * 60;
+
+function prazoParaCancelar(agendamento) {
+  return subtrairMinutos(agendamento.dataHora, ANTECEDENCIA_CANCELAMENTO_MINUTOS);
+}
+
+function dentroDoPrazo(agendamento) {
+  return agoraIsoNoFuso() <= prazoParaCancelar(agendamento);
+}
+
+function regraDeCancelamento(agendamento, tipoUsuario) {
+  if (agendamento.status !== 'confirmado') return { podeCancelar: false };
+  const cancelavelAte = prazoParaCancelar(agendamento);
+  const podeCancelar = tipoUsuario === 'administrador' || (tipoUsuario === 'paciente' && dentroDoPrazo(agendamento));
+  return { podeCancelar, cancelavelAte };
+}
 
 async function criar(req, res) {
   const { disponibilidadeId, especialidadeId, observacao } = req.body;
@@ -67,6 +84,7 @@ async function listar(req, res) {
     const snap = await query.get();
     const itens = snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
+      .map((agendamento) => ({ ...agendamento, ...regraDeCancelamento(agendamento, tipoUsuario) }))
       .sort((a, b) => a.dataHora.localeCompare(b.dataHora));
     res.json(itens);
   } catch (erro) {
@@ -90,6 +108,10 @@ async function cancelar(req, res) {
       const podeCancelar = tipoUsuario === 'administrador' || agendamento.pacienteId === uid;
       if (!podeCancelar) throw { status: 403, mensagem: 'Voce nao pode cancelar este agendamento.' };
       if (agendamento.status === 'cancelado') throw { status: 409, mensagem: 'Agendamento ja esta cancelado.' };
+      if (tipoUsuario !== 'administrador' && !dentroDoPrazo(agendamento)) {
+        const horas = ANTECEDENCIA_CANCELAMENTO_MINUTOS / 60;
+        throw { status: 409, mensagem: `O cancelamento so e permitido ate ${horas} horas antes da consulta. Entre em contato com a clinica.` };
+      }
 
       tx.update(agendamentoRef, { status: 'cancelado', canceladoEm: new Date().toISOString() });
 

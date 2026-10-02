@@ -51,7 +51,7 @@ navegador) tambem ficam neste repositorio.
 | Consulta de Horários Disponíveis | `GET /api/disponibilidades` (só mostra de hoje em diante; horários livres cujo início já passou, no fuso de Recife, ficam de fora, e `POST /api/agendamentos` recusa esses horários com `409`) |
 | Pré-triagem de Sintomas por IA | `POST /api/triagem` |
 | Agendamento de Consulta | `POST /api/agendamentos` |
-| Cancelamento de Agendamento | `PATCH /api/agendamentos/:id/cancelar` |
+| Cancelamento de Agendamento | `PATCH /api/agendamentos/:id/cancelar`. Pacientes só cancelam até 24 horas antes da consulta; depois disso a API responde `409`. O administrador pode cancelar a qualquer momento. `GET /api/agendamentos` devolve `podeCancelar` e `cancelavelAte` em cada item. O prazo fica em `ANTECEDENCIA_CANCELAMENTO_MINUTOS` (`agendamentoController.js`) |
 | Integracao Client-Server (API REST + JSON) | toda a pasta `src/routes` |
 | Persistencia em Banco de Dados | Firebase Firestore |
 

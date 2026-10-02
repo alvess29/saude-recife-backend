@@ -109,7 +109,7 @@ async function main() {
     })
   );
 
-  const amanha = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const depoisDeAmanha = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
   const disponibilidade = await passo('Cadastrar horario disponivel', () =>
     api('/disponibilidades', {
       metodo: 'POST',
@@ -117,7 +117,7 @@ async function main() {
       corpo: {
         profissionalId: profissional.id,
         clinicaId: clinica.id,
-        data: amanha,
+        data: depoisDeAmanha,
         horaInicio: '09:00',
         horaFim: '09:30',
         duracaoMinutos: 30,
