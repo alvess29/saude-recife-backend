@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { autenticar, permitir } = require('../middleware/auth');
-const ctrl = require('../controllers/authController');
+const { autenticar, permitir } = require('../../middleware/auth');
+const ctrl = require('./auth.controller');
 
 router.post('/registrar-paciente', ctrl.registrarPaciente);
 router.post('/registrar-equipe', autenticar, permitir('administrador'), ctrl.registrarContaEquipe);

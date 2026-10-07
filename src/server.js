@@ -2,13 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-const authRoutes = require('./routes/auth.routes');
-const clinicasRoutes = require('./routes/clinicas.routes');
-const especialidadesRoutes = require('./routes/especialidades.routes');
-const profissionaisRoutes = require('./routes/profissionais.routes');
-const disponibilidadesRoutes = require('./routes/disponibilidades.routes');
-const agendamentosRoutes = require('./routes/agendamentos.routes');
-const triagemRoutes = require('./routes/triagem.routes');
+const authRoutes = require('./modules/auth/auth.routes');
+const clinicasRoutes = require('./modules/clinicas/clinicas.routes');
+const especialidadesRoutes = require('./modules/especialidades/especialidades.routes');
+const profissionaisRoutes = require('./modules/profissionais/profissionais.routes');
+const disponibilidadesRoutes = require('./modules/disponibilidades/disponibilidades.routes');
+const agendamentosRoutes = require('./modules/agendamentos/agendamentos.routes');
+const triagemRoutes = require('./modules/triagem/triagem.routes');
 
 const app = express();
 

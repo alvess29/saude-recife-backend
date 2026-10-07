@@ -1,5 +1,5 @@
-const { auth, db } = require('../config/firebase');
-const { USUARIOS, PACIENTES, PROFISSIONAIS } = require('../config/collections');
+const { auth, db } = require('../../config/firebase');
+const { USUARIOS, PACIENTES, PROFISSIONAIS } = require('../../config/collections');
 
 function somenteDigitos(texto) {
   return String(texto || '').replace(/\D/g, '');
@@ -85,7 +85,7 @@ async function registrarContaEquipe(req, res) {
     await db.collection(USUARIOS).doc(usuarioFirebase.uid).set(perfilUsuario);
 
     if (tipoUsuario === 'profissional' && profissionalId) {
-      const { PROFISSIONAIS } = require('../config/collections');
+      const { PROFISSIONAIS } = require('../../config/collections');
       await db.collection(PROFISSIONAIS).doc(profissionalId).update({ uid: usuarioFirebase.uid });
     }
 

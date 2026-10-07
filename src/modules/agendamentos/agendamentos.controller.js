@@ -1,6 +1,6 @@
-const { db } = require('../config/firebase');
-const { AGENDAMENTOS, DISPONIBILIDADES } = require('../config/collections');
-const { horarioJaPassou, agoraIsoNoFuso, subtrairMinutos } = require('../utils/fusoHorario');
+const { db } = require('../../config/firebase');
+const { AGENDAMENTOS, DISPONIBILIDADES } = require('../../config/collections');
+const { horarioJaPassou, agoraIsoNoFuso, subtrairMinutos } = require('../../utils/fusoHorario');
 
 const ANTECEDENCIA_CANCELAMENTO_MINUTOS = 24 * 60;
 
@@ -74,7 +74,7 @@ async function listar(req, res) {
     if (tipoUsuario === 'paciente') {
       query = query.where('pacienteId', '==', uid);
     } else if (tipoUsuario === 'profissional') {
-      const { PROFISSIONAIS } = require('../config/collections');
+      const { PROFISSIONAIS } = require('../../config/collections');
       const profDoc = await db.collection(PROFISSIONAIS).where('uid', '==', uid).limit(1).get();
       if (profDoc.empty) return res.json([]);
       query = query.where('profissionalId', '==', profDoc.docs[0].id);

@@ -1,12 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { autenticar, permitir } = require('../middleware/auth');
-const criarCrud = require('../controllers/crudFactory');
-const { PROFISSIONAIS } = require('../config/collections');
-
-const ctrl = criarCrud(PROFISSIONAIS, {
-  camposObrigatorios: ['nome', 'cpf', 'registroProfissional', 'conselho'],
-});
+const { autenticar, permitir } = require('../../middleware/auth');
+const ctrl = require('./profissionais.controller');
 
 router.get('/', autenticar, ctrl.listar);
 router.get('/:id', autenticar, ctrl.obter);

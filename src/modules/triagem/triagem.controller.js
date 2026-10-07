@@ -1,5 +1,5 @@
-const { db } = require('../config/firebase');
-const { ESPECIALIDADES } = require('../config/collections');
+const { db } = require('../../config/firebase');
+const { ESPECIALIDADES } = require('../../config/collections');
 
 const MODELO = 'gemini-3.6-flash';
 

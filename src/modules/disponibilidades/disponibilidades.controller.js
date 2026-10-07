@@ -1,6 +1,6 @@
-const { db } = require('../config/firebase');
-const { DISPONIBILIDADES, PROFISSIONAIS } = require('../config/collections');
-const { agoraNoFuso, horarioJaPassou } = require('../utils/fusoHorario');
+const { db } = require('../../config/firebase');
+const { DISPONIBILIDADES, PROFISSIONAIS } = require('../../config/collections');
+const { agoraNoFuso, horarioJaPassou } = require('../../utils/fusoHorario');
 
 function paraMinutos(horario) {
   const [hora, minuto] = horario.split(':').map(Number);

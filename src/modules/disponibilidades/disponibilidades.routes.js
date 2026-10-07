@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { autenticar, permitir } = require('../middleware/auth');
-const ctrl = require('../controllers/disponibilidadeController');
+const { autenticar, permitir } = require('../../middleware/auth');
+const ctrl = require('./disponibilidades.controller');
 
 router.get('/', autenticar, ctrl.listar);
 

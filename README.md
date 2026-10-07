@@ -19,15 +19,27 @@ de dados e Firebase Authentication para login).
 ```
 backend/
 ├── src/
-│   ├── config/        conexao com Firebase, nomes das colecoes
+│   ├── config/         conexao com Firebase, nomes das colecoes
 │   ├── middleware/     autenticacao (verifica token) e controle de perfil
-│   ├── controllers/    regras de negocio de cada recurso
-│   ├── routes/         endpoints da API
+│   ├── modules/        um modulo por recurso (routes + controller)
+│   │   ├── auth/             login, cadastro de pacientes e contas da equipe
+│   │   ├── clinicas/         cadastro e consulta de clinicas
+│   │   ├── especialidades/   cadastro e consulta de especialidades
+│   │   ├── profissionais/    cadastro e consulta de profissionais de saude
+│   │   ├── disponibilidades/ horarios de atendimento do profissional
+│   │   ├── agendamentos/     agendar, listar e cancelar consultas
+│   │   └── triagem/          pre-triagem com IA
+│   ├── utils/          crudFactory (CRUD generico) e fusoHorario (horario de Recife)
 │   └── server.js       ponto de entrada
 └── scripts/
     ├── criarAdmin.js   cria o primeiro administrador do sistema
     └── smokeTest.js    teste automatizado de ponta a ponta
 ```
+
+Cada pasta de `src/modules/` tem os mesmos dois arquivos: `<modulo>.routes.js`
+(endpoints e quem pode acessar) e `<modulo>.controller.js` (regras de negocio).
+Para criar um modulo novo, copie uma dessas pastas e registre a rota em
+`src/server.js`.
 
 As regras do Firestore (`firestore.rules`, que bloqueiam acesso direto do
 navegador) tambem ficam neste repositorio.
